@@ -1,10 +1,22 @@
 # Cohort-Analysis
 
-In the project RecommThis cohort analysis relates to a one-million-row extract 
-from the 10-milllion-row MovieLens data set (recommendation system). 
-It allows to better analyze the time component from data. 
-This can help to study users’ behavioral patterns 
-and also to predict ratings.  
+
+## Summary
+
+In the project Recommendation System (see corresponding repository in this account), 
+the 10-milllion-row MovieLens data set (see https://grouplens.org/datasets/movielens/ )
+has been analyzed. Time impact was a predictor, rather limited though. 
+
+This project further elaborates on the idea of time impact by investigating 
+the notion of cohort behavioral patterns. It analyzes a one-million-row extract 
+from the 10-milllion-row MovieLens data set. 
+
+This allows to deliver additional insights about data time component and users’ behavioral patterns 
+and could help to predict ratings when revisiting the Recommendation System project. 
+
+<br>
+
+## Files
 
 This data analysis project is comprised of 70 files:
 -	7 SQL files,
@@ -13,6 +25,12 @@ This data analysis project is comprised of 70 files:
 -	13 PNG files, 
 -	1 Rmd (R Markdown) file 
 -	and 1 HTML file. 
+
+<br>
+
+## Work Organization
+
+* PostgreSQL with the IDE pgAdmin
 
 Data import, database management and data wrangling 
 have been performed in PostgreSQL with the IDE pgAdmin. 
