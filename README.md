@@ -1,6 +1,6 @@
 # Cohort-Analysis
 
-This cohort analysis relates to a one-million-row extract 
+In the project RecommThis cohort analysis relates to a one-million-row extract 
 from the 10-milllion-row MovieLens data set (recommendation system). 
 It allows to better analyze the time component from data. 
 This can help to study users’ behavioral patterns 
