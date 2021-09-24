@@ -18,6 +18,8 @@ and could help to predict ratings when revisiting the Recommendation System proj
 70_cohort_analysis_final_report.html, 
 as well of course as the insights gained from this cohort analysis. 
 
+* 
+
 <br>
 
 ## Files
@@ -38,19 +40,18 @@ This data analysis project is comprised of 70 files:
 * Data import, database management and data wrangling 
 have been performed in PostgreSQL with the IDE pgAdmin. 
 * The database cohort-analysis has been created in PostgreSQL. 
-Cohort analysis has been conducted in PostgreSQL as well 
-but also in Excel with pivot tables and graphs. 
+* Cohort analysis has been conducted in PostgreSQL as well 
+but also in Excel with pivot tables.
+* Visualization has been performed in Excel. 
 
 ### R Markdown
-The final HTML report (70_cohort_analysis_final_report.html) 
-has been produced in R Markdown (69_cohort_analysis_final_report.Rmd). 
+The final report 70_cohort_analysis_final_report.html
+has been produced in R Markdown by knitting the file 69_cohort_analysis_final_report.Rmd. 
 
-### CSV files
-* Input data are stored in a zipped CSV file:  
-01_data_import_from_recommendation_project.zip. 
+### CSV files and LibreOffice Calc
+* Input data are stored in the zipped CSV file 01_data_import_from_recommendation_project.zip. 
 * Data have also been transferred in CSV format between SQL, Excel and R Markdown. 
-CSV files have been produced in Calc from LibreOffice 
-(for technical convenience with decimal separator). 
+* CSV files have been produced in Calc from LibreOffice (for technical convenience with decimal separator). 
 
-### PNG format
+### Graphs in PNG format
 Graphs have been transferred in PNG format. 
