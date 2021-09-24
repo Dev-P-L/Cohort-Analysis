@@ -42,7 +42,7 @@ This data analysis project is comprised of 70 files:
 
 ## Work Organization
 
-### PostgreSQL with the IDE pgAdmin and Excel
+* ### PostgreSQL with the IDE pgAdmin and Excel
 * Data import, database management and data wrangling 
 have been performed in PostgreSQL with the IDE pgAdmin. 
 * The database cohort-analysis has been created in PostgreSQL. 
