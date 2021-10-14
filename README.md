@@ -4,7 +4,7 @@
 ## Summary
 
 * In the project Recommendation System (see corresponding repository in this account), 
-the 10-milllion-row MovieLens data set (see https://grouplens.org/datasets/movielens/ )
+the 10-milllion-row MovieLens data set (see *https://grouplens.org/datasets/movielens/* )
 has been analyzed. Time impact was a predictor, rather limited though. 
 
 * This project further elaborates on the idea of time impact by investigating 
@@ -15,16 +15,14 @@ from the 10-milllion-row MovieLens data set.
 and could help to predict ratings when revisiting the Recommendation System project. 
 
 * More explanation is provided in the final report 
-70_cohort_analysis_final_report.html, 
+*70_cohort_analysis_final_report.html*, 
 as well of course as the insights gained from this cohort analysis. 
 
-* Wishing to visualize 70_cohort_analysis_final_report.html?
+* Wishing to visualize *70_cohort_analysis_final_report.html*?
 
-  * You could open it in GitHub Desktop.
-  
-  * Alternatively, you could use the URL https://rawcdn.githack.com/Dev-P-L/Cohort-Analysis/02477d2a87b740e15492755bf00a9dbdd2e75868/70_cohort_analysis_final_report.html which, when activated, delivers 70_cohort_analysis_final_report.html to the browser with the correct Content-Type headers. The URL has been obtained by introducing the GitHub URL of 70_cohort_analysis_final_report.html into https://raw.githack.com/ , as suggested in https://stackoverflow.com/questions/6551446/can-i-run-html-files-directly-from-github-instead-of-just-viewing-their-source .
-
-  * Alternatively again, you could knit 69_cohort_analysis_final_report.Rmd or ask me by email for a copy of 70_cohort_analysis_final_report.html.
+  * You could activate the hyperlink *https://dev-p-l.github.io/Bank-Marketing/Report.html* .
+  * Alternatively, you could open it in GitHub Desktop.
+  * Alternatively again, you could knit *Report.Rmd* or ask me by email for a copy of *70_cohort_analysis_final_report.html* .
 
 <br>
 
