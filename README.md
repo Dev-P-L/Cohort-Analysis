@@ -12,7 +12,7 @@ This data analysis project is comprised of 70 files:
   *	and 1 HTML file. 
 
 Wishing to visualize *70_cohort_analysis_final_report.html*?
-  * You could activate the hyperlink *https://dev-p-l.github.io/Bank-Marketing/Report.html* .
+  * You could activate the hyperlink *https://dev-p-l.github.io/Cohort-Analysis/70_cohort_analysis_final_report.html* .
   * Alternatively, you could open it in GitHub Desktop.
   * Alternatively again, you could knit *Report.Rmd* or ask me by email for a copy of *70_cohort_analysis_final_report.html* .
 
