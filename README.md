@@ -20,7 +20,7 @@ Wishing to visualize *70_cohort_analysis_final_report.html*?
 
 ## Work Organization
 
-### PostgreSQL with the IDE pgAdmin and Excel
+* PostgreSQL with the IDE pgAdmin and Excel
   * Data import, database management and data wrangling 
 have been performed in PostgreSQL with the IDE pgAdmin. 
   * The database cohort-analysis has been created in PostgreSQL. 
@@ -28,16 +28,16 @@ have been performed in PostgreSQL with the IDE pgAdmin.
 but also in Excel with pivot tables.
   * Visualization has been performed in Excel. 
 
-### R Markdown
+* R Markdown
   * The final report 70_cohort_analysis_final_report.html
 has been produced in R Markdown by knitting the file 69_cohort_analysis_final_report.Rmd. 
 
-### CSV files and LibreOffice Calc
+* CSV files and LibreOffice Calc
   * Input data are stored in the zipped CSV file 01_data_import_from_recommendation_project.zip. 
   * Data have also been transferred in CSV format between SQL, Excel and R Markdown. 
   * CSV files have been produced in Calc from LibreOffice (for technical convenience with decimal separator). 
 
-### Graphs in PNG format
+* Graphs in PNG format
   * Graphs have been transferred in PNG format. 
 
 <br>
