@@ -3,13 +3,14 @@
 
 ## Files
 
-This data analysis project is comprised of 70 files:
+This data analysis project is comprised of 71 files:
   *	7 SQL files,
   *	13 XLSX files,
   *	35 CSV files,
   *	13 PNG files, 
-  *	1 Rmd (R Markdown) file 
-  *	and 1 HTML file. 
+  *	1 Rmd (R Markdown) file, 
+  *	1 HTML file,
+  *	and 1 README.md file. 
 
 Wishing to visualize *70_cohort_analysis_final_report.html*?
   * You could activate the hyperlink *https://dev-p-l.github.io/Cohort-Analysis/70_cohort_analysis_final_report.html* .
