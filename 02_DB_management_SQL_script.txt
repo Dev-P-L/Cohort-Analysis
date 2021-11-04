@@ -1,0 +1,41 @@
+-- This SQL script prepares cohort analysis.
+-- It performs three tasks: database management, data import and data wrangling.
+
+-- Storing data in table "dataset" from database "cohort-analysis".
+
+DROP TABLE IF EXISTS dataset
+;
+
+CREATE TABLE dataset(
+    rating_id integer UNIQUE NOT NULL,
+    user_id integer NOT NULL,
+    movie_id integer NOT NULL,
+    rating numeric,
+    rating_timestamp numeric,
+    title varchar(250),	
+    genres varchar(250),
+    PRIMARY KEY (rating_id)
+);
+
+-- Restoring data to the table "dataset" in the database "cohort-analysis".
+-- A zipped copy of data is available at 
+-- https://github.com/Dev-P-L/Cohort-Analysis
+-- in a zipped CSV file under the name 01_dataset.zip 
+-- or with the link:
+-- https://raw.githubusercontent.com/Dev-P-L/Cohort-Analysis/master/01_dataset.zip .
+-- In the code hereunder, it is imported in local; 
+-- it could as well be imported from the repository.
+
+COPY dataset(
+    rating_id, 
+    user_id, 
+    movie_id, 
+    rating,
+	rating_timestamp,
+	title,
+	genres
+) 
+FROM 
+    'E:\DS\SQL\Cohort\01_dataset.csv' 
+    DELIMITER ',' CSV HEADER
+;
