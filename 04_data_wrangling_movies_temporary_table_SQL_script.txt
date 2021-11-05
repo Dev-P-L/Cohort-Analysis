@@ -1,0 +1,48 @@
+-- Creating temporary table "movie_prep" from a subset from the table "dataset",
+-- avoiding duplicates, extracting movie release year from title 
+-- and replacing the pipe characters with commas.
+
+DROP TABLE IF EXISTS movie_prep
+;
+
+SELECT DISTINCT ON (movie_id) 
+    movie_id,
+    LEFT(RIGHT(title, 5), 4) AS release_year,
+    REPLACE(genres, '|', ',') AS genres
+INTO TEMP TABLE movie_prep
+FROM 
+    dataset
+ORDER BY 
+    movie_id
+;
+
+-- Let's have a look at genres: actually, these are composite genres
+-- often combining two or more basic genres as it is showcased in 
+-- the following CSV file. 
+
+DROP TABLE IF EXISTS split_movie_prep
+;
+
+SELECT
+    movie_id,
+    release_year,
+    regexp_split_to_table(genres, ',') AS genres
+INTO TEMP TABLE split_movie_prep
+FROM 
+    movie_prep
+;
+
+-- For each movie, we have one, two or more basic genres, 
+-- each time on a separate row. 
+-- Let's copy data to a CSV file in local.
+-- (It will also be exported to the repository, as well as other files.)
+
+COPY (SELECT * FROM split_movie_prep) 
+    TO 'E:\DS\SQL\Cohort\04_data_wrangling_movies_temporary_table.csv' 
+    WITH (FORMAT CSV, HEADER)
+;
+
+
+
+
+
