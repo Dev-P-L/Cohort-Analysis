@@ -1,0 +1,24 @@
+-- Let's have a look at genres: actually, these are composite genres
+-- often combining two or more basic genres as it is showcased in 
+-- the following CSV file. 
+
+DROP TABLE IF EXISTS composite_genre_sample;
+
+SELECT 
+    movie_id,
+    title,
+    genres 
+INTO TEMP TABLE composite_genre_sample
+FROM 
+    dataset
+LIMIT 5
+; 
+
+-- Let's export the temporary table "composite_genre_sample" as a CSV file,
+-- for integration into the final report. 
+-- (It will also be exported to the repository, as all other files). 
+
+COPY (SELECT * FROM composite_genre_sample) 
+    TO 'E:\DS\SQL\Cohort\03_composite_genre_extract.csv' 
+    WITH (FORMAT CSV, HEADER)
+;
