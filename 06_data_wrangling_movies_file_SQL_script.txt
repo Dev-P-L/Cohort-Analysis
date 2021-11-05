@@ -1,0 +1,31 @@
+CREATE TABLE movies(
+    movie_id integer PRIMARY KEY,
+    release_year integer,
+    Action integer, 
+    Adventure integer, 
+    Animation integer, 
+    Children integer, 
+    Comedy integer, 
+    Crime integer, 
+    Documentary integer, 
+    Drama integer, 
+    Fantasy integer, 
+    Film_Noir integer, 
+    Horror integer, 
+    IMAX integer, 
+    Musical integer, 
+    Mystery integer, 
+    Romance integer, 
+    Sci_Fi integer, 
+    Thriller integer, 
+    War integer, 
+    Western integer
+);
+
+COPY movies(movie_id, release_year, Action, Adventure, Animation, Children, 
+Comedy, Crime, Documentary, Drama, Fantasy, Film_Noir, Horror, IMAX, Musical, 
+Mystery, Romance, Sci_Fi, Thriller, War, Western) 
+FROM PROGRAM
+  'curl "https://raw.githubusercontent.com/Dev-P-L/Cohort-Analysis/master/06_data_wrangling_movies_file.csv"' 
+  DELIMITER ',' CSV HEADER
+;

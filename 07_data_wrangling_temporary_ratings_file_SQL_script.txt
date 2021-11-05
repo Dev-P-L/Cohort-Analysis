@@ -1,0 +1,21 @@
+DROP TABLE IF EXISTS ratings_prep;
+
+SELECT 
+    rating_id,
+    user_id,
+    movie_id,
+    rating,
+    EXTRACT(year FROM to_timestamp(rating_timestamp)) AS rating_timestamp
+INTO
+    TEMP TABLE ratings_prep
+FROM
+    dataset    
+;
+
+-- Let's convert this temporary file into a CSV file in local.
+-- (It will also be exported to the repository, as well as other files.)
+
+COPY (SELECT * FROM ratings_prep) 
+  TO 'E:\DS\SQL\Cohort\07_data_wrangling_ratings_file.csv' 
+  WITH (FORMAT CSV, HEADER)
+;

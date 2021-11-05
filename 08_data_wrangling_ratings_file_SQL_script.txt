@@ -1,0 +1,23 @@
+DROP TABLE IF EXISTS ratings;
+
+CREATE TABLE ratings(
+    rating_id integer NOT NULL,
+    user_id integer NOT NULL,
+    movie_id integer NOT NULL,
+    rating numeric, 
+    rating_year numeric,
+    PRIMARY KEY (rating_id, movie_id),
+    FOREIGN KEY (movie_id) REFERENCES movies (movie_id)
+    ON DELETE CASCADE
+);
+
+COPY ratings( 
+    rating_id,
+    user_id, 
+    movie_id, 
+    rating,
+    rating_year
+) 
+FROM PROGRAM
+    'curl "https://raw.githubusercontent.com/Dev-P-L/Cohort-Analysis/master/07_data_wrangling_ratings_file.csv"'
+    DELIMITER ',' CSV HEADER;

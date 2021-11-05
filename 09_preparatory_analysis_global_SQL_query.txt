@@ -1,0 +1,36 @@
+-- PREPARATORY DATA ANALYSIS - Global Insights
+-- From the database cohort-analysis, 
+-- let's get the numbers of active users, ratings and movies
+-- as well as the rating count per active user and the average ratings.
+
+DROP TABLE IF EXISTS global_preliminary_insights;
+
+SELECT 
+    rating_year AS "Rating Year",
+	COUNT(DISTINCT(r.user_id)) AS "Number of Active Users",
+	COUNT(DISTINCT(r.rating_id)) AS "Number of Ratings",
+	COUNT(DISTINCT(m.movie_id)) AS "Number of Movies",
+	(COUNT(DISTINCT(r.rating_id)) * 1.0) / (COUNT(DISTINCT(r.user_id)) * 1.0)
+	    AS "Number of Ratings per Active User",
+	AVG(r.rating) AS "Average Rating"
+INTO
+    TEMP TABLE global_preliminary_insights
+FROM 
+    ratings AS r,
+	movies AS m
+WHERE
+    r.movie_id = m.movie_id
+GROUP BY 
+    ROLLUP(r.rating_year)
+;
+
+-- Let's copy results to the working directory in a CSV file 
+-- (The file will also be copied to the repository, as all other files.) 
+
+COPY (SELECT * FROM global_preliminary_insights) 
+  TO 'E:\DS\SQL\Cohort\09_preparatory_analysis_global_results.csv' 
+  WITH (FORMAT CSV, HEADER)
+;
+
+-- This CSV will be used in Excel through pivot tables
+-- to deliver cohort analysis.
