@@ -3,11 +3,11 @@
 
 ## Files
 
-This data analysis project is comprised of 71 files:
-  *	7 SQL files,
+This data analysis project is comprised of these files:
+  *	12 text files with SQL scripts,
   *	13 XLSX files,
   *	35 CSV files,
-  *	13 PNG files, 
+  *	29 PNG files,
   *	1 Rmd (R Markdown) file, 
   *	1 HTML file,
   *	and 1 README.md file. 
@@ -15,13 +15,13 @@ This data analysis project is comprised of 71 files:
 Wishing to visualize *70_cohort_analysis_final_report.html*?
   * You could activate the hyperlink *https://dev-p-l.github.io/Cohort-Analysis/70_cohort_analysis_final_report.html* .
   * Alternatively, you could open it in GitHub Desktop.
-  * Alternatively again, you could knit *Report.Rmd* or ask me by email for a copy of *70_cohort_analysis_final_report.html* .
+  * Alternatively again, you could knit *69_cohort_analysis_final_report.Rmd* or ask me by email for a copy of *70_cohort_analysis_final_report.html* .
 
 <br>
 
 ## Work Organization
 
-* PostgreSQL with the IDE pgAdmin and Excel
+* PostgreSQL with the pgAdmin GUI and MS Excel
   * Data import, database management and data wrangling 
 have been performed in PostgreSQL with the IDE pgAdmin. 
   * The database cohort-analysis has been created in PostgreSQL. 
