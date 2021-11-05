@@ -1,0 +1,144 @@
+-- Running cohort analysis with respect to release year: 
+-- movies released before 1990 will be considered 
+-- separately in this query.
+
+-- Let's exclude data from rating years 1995 and 2009
+-- because there are few data.
+
+DROP TABLE IF EXISTS ratings_oldies
+;
+
+SELECT 
+  r.rating_id,
+  r.user_id,
+  r.movie_id,
+  r.rating,
+  r.rating_year  
+INTO
+  TEMP TABLE ratings_oldies
+FROM
+  ratings r, movies m 
+WHERE m.movie_id = r.movie_id 
+  and m.release_year < 1990 
+  and r.rating_year > 1995 and r.rating_year < 2009
+;
+
+-- Building up cohorts by assigning a join year to each user.
+
+DROP TABLE IF EXISTS join_table
+;
+
+SELECT 
+  user_id, MIN(rating_year) AS join_year
+INTO
+  TEMP TABLE join_table
+FROM
+  ratings_oldies
+GROUP BY 1
+;
+
+-- Computing by join year and by rating year the following series:
+-- * number of ratings,
+-- * user retention (in numbers of users),
+-- * the average number of ratings per active user
+-- * and the average rating.
+
+DROP TABLE IF EXISTS retention_table
+;
+
+SELECT 
+  jt.join_year,
+  r.rating_year,
+  COUNT(r.rating_id) AS rating_number,
+  COUNT(DISTINCT(r.user_id)) AS user_retention,
+  COUNT(r.rating_id) / COUNT(DISTINCT(r.user_id)) AS rating_per_user,
+  AVG(r.rating) AS average_rating
+INTO
+  TEMP TABLE retention_table
+FROM
+  ratings_oldies r 
+  LEFT JOIN join_table jt
+  ON jt.user_id = r.user_id
+GROUP BY jt.join_year, r.rating_year
+ORDER BY jt.join_year, r.rating_year
+;
+
+-- Computing by cohort the following series:
+-- * the number of users in each cohort during the join year
+-- * the number of ratings in each cohort during the join year.
+-- This aims at enabling to compute 
+-- user retention for each rating year in percentage of join year,
+-- rating number for each rating year in percentage of join year.
+
+DROP TABLE IF EXISTS first_year_table
+;
+
+SELECT 
+  jt.join_year, 
+  COUNT(DISTINCT(r.user_id)) AS first_year_cohort_size,
+  COUNT(DISTINCT(r.rating_id)) AS first_year_rating_number
+INTO
+  TEMP TABLE first_year_table
+FROM
+  ratings_oldies r
+  LEFT JOIN join_table jt 
+  ON jt.user_id = r.user_id
+WHERE r.rating_year = jt.join_year
+GROUP BY 1
+;
+
+-- Building up a final table, per cohort and rating year, 
+-- with the following series:
+-- * join year,
+-- * rating year,
+-- * the difference between rating year and join year,
+-- * the user retention (in numbers of users),
+-- * the number of users during the join year, 
+-- * the user retention in percent of the join year,
+-- * the number of ratings,
+-- * the number of ratings during the join year,
+-- * the number of ratings in percent of the join year,
+-- * the average number of ratings per active user 
+-- * and the average rating.
+
+DROP TABLE IF EXISTS augmented_retention_table
+;
+
+SELECT 
+  rt.join_year, 
+  rt.rating_year, 
+  rt.rating_year - rt.join_year AS year_diff,
+  rt.user_retention,
+  fyt.first_year_cohort_size,
+  ROUND((rt.user_retention * 100.0) / (fyt.first_year_cohort_size * 1.0), 2) AS percentual_retention,
+  rt.rating_number, 
+  fyt.first_year_rating_number,
+  ROUND(rt.rating_number * 100.0 / (fyt.first_year_rating_number * 1.0), 2) AS percentual_rating_number,
+  rt.rating_per_user,
+  rt.average_rating
+INTO
+  TEMP TABLE augmented_retention_table
+FROM
+  retention_table rt 
+  LEFT JOIN first_year_table fyt
+  ON fyt.join_year = rt.join_year
+ORDER BY rt.join_year, rt.rating_year
+;
+
+-- Exporting final table to working directory as a CSV file.
+-- (The file will also be copied to the repository, as all other files.)
+
+COPY 
+  (SELECT * FROM augmented_retention_table) 
+TO 
+  'E:\DS\SQL\Cohort\67_cohort_analysis_results_by_release_year.csv' 
+WITH 
+  (FORMAT CSV, HEADER)
+;
+	
+-- The CSV file will be further processed in Excel through a pivot table
+-- under the name 68_cohort_analysis_results_by_release_year_pivot_table.xlsx
+-- to deliver a user retention table in percent of the join year and a summarizing graph.
+-- All files are copied in the GitHub repository.  
+
+

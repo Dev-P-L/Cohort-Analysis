@@ -1,0 +1,805 @@
+---
+title: "Cohort Analysis"
+subtitle: "Philippe Lambot -- September 7, 2019"
+
+output: 
+  html_document:
+    toc: true               # TOC (table of contents) required
+    toc_depth: 2            # Depth of headers in TOC
+    number_sections: true   # Adding section numbering to headers.
+    css: styles.css         # Calling CSS file.
+    toc_float:              # Floats TOC to left of the HTML doc.
+      collapsed: false      # Floating TOC with levels from toc_depth.
+      smooth_scroll: true   # Controls scrolls related to TOC navigation.
+    theme: readable         # HTML document theme 
+                            # (largely superseded by CSS file)
+    df_print: paged         # HTML tables with support for pagination
+    smart: false            # Avoids typographical correction.
+
+# styles.css is a CSS file that regulates many layout aspects. 
+# It is lodged in the same GitHub repository as 
+# 69_cohort_analysis_final_report.Rmd, that is to say in 
+# https://github.com/Dev-P-L/Cohort-Analysis .
+
+# If you wish to run or knit the file 
+# 69_cohort_analysis_final_report.Rmd on your computer, 
+# I suggest placing the files 69_cohort_analysis_final_report.Rmd 
+# and styles.css in the same folder.
+
+---
+
+```{r Setup, include = FALSE}
+
+# Avoiding messages and warnings in HTML and PDF report.
+# Anyway, warnings have already been dealt with.  
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+
+# Regulating graph layout.
+knitr::opts_chunk$set(out.width = "100%", fig.align = "center")
+
+# Facilitating table layout.
+options(knitr.table.format = "html")
+
+# The string <br> will be used to generate double empty lines.
+
+```
+
+<br>
+
+<br>
+
+<br>
+
+# Introduction
+
+## Data Source
+
+Cohort analysis will be applied to data from the 10-million-row MovieLens dataset in order to gain further insights about user behavior. 
+
+In the MovieLens system, users can issue ratings about movies in order to receive movie recommendations. Among numerous useful references, let's just mention the following ones:
+
+- https://grouplens.org/datasets/movielens/
+- https://movielens.org/
+- https://grouplens.org/
+- https://en.wikipedia.org/wiki/MovieLens
+- https://en.wikipedia.org/wiki/GroupLens_Research 
+    
+<br>
+
+In my Recommendation-System Project (please see the GitHub repository https://github.com/Dev-P-L/Recommendation-System), I have developed predictive analysis about ratings. 
+
+A model has been built up on the edx subset of data of 90% of data picked up at random from the 10-million-row dataset. The independent variable, i.e. ratings, has been "explained" by four predictors: time effect, genre effect, user effect, and movie effect. 
+
+That model has been validated on the validation dataset (10% of the 10-million-row dataset). Each of the four predictors has showed predictive capability. 
+
+<br>
+
+## Objective
+
+As far as time effect is concerned, a general pattern has been spotted in the Recommendation-System Project. Its predictive power has been ascertained but has remained limited. Maybe there is not just one general temporal pattern but several concomitant temporal patterns? 
+
+With a view to drilling down into temporal patterns and gaining further insights and possibly boosting predictive power, this study will be scanning temporal patterns through cohort analysis. The following dimensions will be analyzed:
+
+- retention over user lifetime by cohort,
+- change in retention over product lifetime,
+- evolution of rating number by cohort,
+- evolution of rating average by cohort,
+- retention by genre by cohort, 
+- retention by movie release year by cohort.
+
+<br>
+
+## Software
+
+Analysis will be conducted first in PostgreSQL with the pgAdmin GUI: data import, database management, data wrangling, and basic results from cohort analysis. Hereunder, PostgreSQL will generally be referred to as *SQL*. 
+
+Cohort analysis will be further refined in MS Excel with pivot tables. Graphical visualization will also be created in Excel. This could have been done in R very easily, but combining SQL and Excel has been a deliberate attempt to explore possibilities; moreover, numerous data analysts still use Excel. 
+
+The final HTML report will be produced in R Markdown with the RStudio IDE. 
+
+Transferring files between SQL, Excel and R Markdown will be performed in CSV format for data and PNG format for graphs. CSV files will be created in Calc from LibreOffice because, on my system, Calc provides high operational convenience with decimal separator. PNG files will be created in MS Paint. 
+
+SQL scripts will be provided in two formats: text files and PNG files. Text files are included as a courtesy to readers who would like to run the code. PNG files will be called from the GitHub repository https://github.com/Dev-P-L/Cohort-Analysis and will be inserted into the final HTML document.
+
+All files are available in my GitHub repository https://github.com/Dev-P-L/Cohort-Analysis . 
+
+Readers are most welcome to run the SQL scripts and the pivot tables. For readers interested, some pieces of advice are provided in the last but one section. 
+
+<br>
+
+# Data Preparation
+
+## Database Creation
+
+The *cohort-analysis* database  is created in PostgreSQL – version 11 – with pgAdmin 4 – version 4.10. 
+
+<br>
+
+![](00_DB_Creation_SQL.png)
+
+<br>
+
+The dataset *01_dataset.zip* will be restored to the database in the next section.
+
+<br>
+
+## Data Import
+
+In the *cohort-analysis* database, the *dataset* table will be created to store data. In the *dataset* table, the fields are 
+
+- rating_id, 
+- user_id, 
+- movie_id, 
+- title (including release year), 
+- genre,
+- and rating_year.
+
+<br>
+
+![](02_DB_management_SQL_script.png)
+
+<br>
+
+In the SQL query above, data are imported from a copy in local. This is just a choice when developing. They could be imported as well from the copy in the GitHub repository. 
+
+In the *dataset* table, the field *genre* is comprised of composite genres such as *Action|Adventure|Sci-Fi|Thriller*. 
+
+For illustrative purposes, a few additional examples have been retrieved from the *01_dataset.zip* dataset by the *03_DB_extract* query, which reads as follows.
+
+<br>
+
+![](03_DB_extract_SQL_script.png)
+
+<br>
+
+The extract is stored in  CSV file *03_composite_genre_extract.csv*. This has been done in local and has been copied into the GitHub repository later on. Here is the table with the examples of composite genres. 
+
+<br>
+
+```{r Cleaning up workspace and downloading packages and setting working directory and showing sample table with some composite genres}
+
+# CLEARING UP WORKSPACE FOR RAM MANAGEMENT.
+
+# 1. Clearing plots
+invisible(if(!is.null(dev.list())) dev.off())
+
+# 2. Cleaning workspace
+rm(list=ls())
+
+# 3. Cleaning console
+cat("\014")
+
+# Downloading packages.
+if(!require(tidyverse)) install.packages("tidyverse", repos = "http://cran.us.r-project.org")
+if(!require(kableExtra)) install.packages("kableExtra", repos = "http://cran.us.r-project.org")
+
+# Showing sample table with some composite genres.
+tab <- as.data.frame("Table 1 - Illustrative Examples of Composite Genres") 
+colnames(tab) <- NULL
+kable(tab, "html", align = "c") %>% 
+  kable_styling(bootstrap_options = c("bordered", "condensed"), 
+  full_width = F, font_size = 24) %>%
+  column_spec(1, bold = T)
+
+tab <- read.csv(
+  "https://raw.githubusercontent.com/Dev-P-L/Cohort-Analysis/master/03_composite_genre_extract.csv")
+
+tab <- tab %>% 
+  rename("Movie Id" = movie_id, "Title" = title, 
+         "Composite Genre" = genres)
+
+kable(tab, "html", align = "c") %>% 
+  kable_styling(bootstrap_options = "bordered", 
+  full_width = F, font_size = 18)  
+
+```
+
+<br>
+
+## Data Wrangling
+
+In this section, there will be some data management and some data wrangling as well. This prepares the *cohort-analysis* database for the exploratory data analysis and the cohort analysis. 
+
+Two additional tables will be created. 
+
+The first additional table is about movies. The release year will be extracted from the title and the composite genres – amalgams of basic genres – will be split into basic genres. 
+
+The second additional table is about ratings. The *ratings* table will incorporate among others the rating year, which will be extracted from the *rating_timestamp* feature. 
+
+For movies, a temporary table will be created first. It will receive the release year and the basic genres separated and no longer amalgamated with each other. Here is the SQL script that perform the job. 
+
+<br>
+
+![](04_data_wrangling_movies_temporary_table_SQL_script.png)
+
+<br>
+
+The last query has exported the *split_movie_prep* temporary table as a CSV file, which has been stored locally as *04_data_wrangling_movies_temporary_table.csv* and has been copied to the GitHub repository under the same name. 
+
+This CSV file is comprised of interesting information: movie release year and basic genres. 
+
+But, as shown in the last query above, the file is in long format: for each movie, there are one, two, or more basic genres, each time on a separate row. It will be converted into wide format, with rows being turned into columns so that there are as many columns as basic genres. 
+
+This will be done with a pivot table in Excel since it has been opted, in this project, for combining SQL and Excel. The pivot table delivered is stored locally and in the GitHub repository under the name *05_data_wrangling_movies_pivot_table.xlsx*. It is converted into a CSV file under the name *06_data_wrangling_movies_file.csv* (see GitHub repository). 
+
+Now, the *movies* table will be created in the *cohort-analysis* database. The data from *06_data_wrangling_movies_file.csv* will be restored to the *movies* table. This is done by the following query, called *06_data_wrangling_movies_file_SQL_script*.
+
+<br>
+
+![](06_data_wrangling_movies_file_SQL_script.png)
+
+<br>
+
+A temporary table will now be created for ratings. It will be saved as a CSV file.
+Here are the queries.
+
+<br>
+
+![](07_data_wrangling_temporary_ratings_file_SQL_script.png)
+
+<br>
+
+The following queries create a *ratings* table in the *cohort-analysis* database; the data from the CSV file are restored to the *ratings* table. Here are the queries.
+
+<br>
+
+![](08_data_wrangling_ratings_file_SQL_script.png)
+
+<br>
+
+In the *ratings* table, the primary key is a combination of *rating_id* and *movie_id*; *movie_id* is also a foreign key that references *movie_id* from the *movies* table, *movie_id* being the primary key in the *movies* table. Consequently, the table ratings is a referencing table and the table movies is the referenced table. 
+
+In a snapshot, in the database cohort-analysis, which has been managed in PostgreSQL and pgAdmin, there is the *dataset* table with all imported data, the *movies* table, which is a referenced table with primary key *movie_id*, and the *ratings* table, which is a referencing table whose primary key is a combination of *rating_id* and *movie_id* and whose foreign key is *movie_id*. 
+
+After this piece of database management, data import, and data wrangling, let's move to exploratory data analysis. 
+
+<br>
+
+# EDA
+
+Let's do some data preparatory analysis to deliver preliminary insights and prepare cohort analysis. Three SQL queries will be run: one global query (file 09), one query by (basic) genre (file 16) and one by movie release year (file 20).
+
+<br>
+
+## Global EDA
+
+The global query delivers per rating year
+
+- the number of active users,
+- the number of ratings,
+- the number of movies,
+- the number of ratings per active user,
+- and the average rating.
+
+Here is query 09.
+
+<br>
+
+![](09_preparatory_analysis_global_SQL_query.png)
+
+<br>
+
+Results can be found in CSV file 09. They are used in XLSX file 10 to process graphs. Graphs are available in PNG format in files 11 to 15. They are also inserted and commented upon below.
+
+<br>
+
+### Number of Active Users per Rating Year
+
+The first graph below shows that the number of active users reached a high in 1996 with more than 16,000 users, before falling below 2,000 in 1998. Afterwards, it evolved between 4,700 and 9,300 per year. The year range is from 1996 to 2008. Years 1995 and 2009 have been discarded from the graph because the number of active users was exceptionally low during these years, as can be seen in the first tab from the XLSX file 10: there was only one active user in 1995 and there were only 275 in 2009.
+
+So, the number of active users varies rather hectically per year between 1996 and 1998 before stabilizing somewhat between 1999 and 2008. Would this go hand in hand with changes in retention? We will see that in the section dedicated to cohort analysis.
+
+<br>
+
+```{r Graph 1  Number of Active Users, fig.cap = "Graph 1"}
+
+knitr::include_graphics("https://raw.githubusercontent.com/Dev-P-L/Cohort-Analysis/master/11_preparatory_analysis_active_users_graph.png")
+
+```
+
+<br>
+
+### Number of Ratings per Rating Year
+
+Graph 2 shows how the number of ratings evolves per year. It shows some similarity with the first graph except for 1996, which is no longer predominant as it was in number of active users per year. How to explain levels after 1998: are they still due to the numerous users who joined in 1996 or to users who joined more recently? This will be further investigated in cohort analysis. 
+
+<br>
+
+```{r Graph 2 - Rating Count, fig.cap = "Graph 2"}
+
+knitr::include_graphics("https://raw.githubusercontent.com/Dev-P-L/Cohort-Analysis/master/12_preparatory_analysis_rating_count_graph.png")
+
+```
+
+<br>
+
+### Number of Rated Movies per Rating Year
+
+Graph 3 is about the number of rated movies per year. There is a continued increase from 1996 to 2005 before the number of rated movies plateauing per year. Movies will be further split by genre and release year, in exploratory analysis and cohort analysis.
+
+<br>
+
+```{r Graph 3 - Movie Count, fig.cap = "Graph 3"}
+
+knitr::include_graphics("https://raw.githubusercontent.com/Dev-P-L/Cohort-Analysis/master/13_preparatory_analysis_movie_count_graph.png")
+
+```
+
+<br>
+
+### Average Number of Ratings per Active User
+
+What about the average number of ratings per active user? Graph 4 illustrates this. Contrary to the predominant number of active users in 1996, the average number of ratings per active user is relatively low in 1996, with little more than 6, and it remains below 7 in 1997, before rocketing above 10 in 1998. It still increases in 1999 and 2000 before remaining at 12 or more from 2001 to 2008. 
+
+Would the higher levels observed from 1999 onwards be, at least partially, linked to user retention increasing over product lifetime?
+
+<br>
+
+```{r Graph 4 - Average Numbers of Ratings per Active User, fig.cap = "Graph 4"}
+
+knitr::include_graphics("https://raw.githubusercontent.com/Dev-P-L/Cohort-Analysis/master/14_preparatory_analysis_average_number_of_ratings_per_active_user_graph.png")
+
+```
+
+<br>
+
+### Average Rating per Rating Year
+
+The very concept of average rating is also decisive in this study. Indeed, understanding how users rate movies is essential to improve product, i.e. recommendations delivered to users on the basis of their own ratings. Graph 5 already sheds some light on rating evolution. 
+
+After some ups and downs from 1997 to 1999, there is a downward trend in average rating per year from 2000 to 2004, followed by partial recovery until 2008. Will that general development be shared by all user cohorts defined by join year?   
+
+<br>
+
+```{r Graph 5 - Average Ratings, fig.cap = "Graph 5"}
+
+knitr::include_graphics("https://raw.githubusercontent.com/Dev-P-L/Cohort-Analysis/master/15_preparatory_analysis_average_ratings_graph.png")
+
+```
+
+<br>
+
+## EDA by Genre
+
+In this preparatory analysis, let's move to a breakdown by basic genre. Ratings will be broken down by basic genre. The SQL query that delivers these results can be found in file 16 in the GitHub repository. 
+
+<br>
+
+![](16_1_preparatory_analysis_by_genre_SQL_query.png)
+
+<br>
+
+![](16_2_preparatory_analysis_by_genre_SQL_query.png)
+
+<br>
+
+Quantitative results are produced in file 17 and are further processed in Excel (file 18) to create graph 6 (see PNG file 19). 
+
+Graph 6 illustrates the wide variation range of ratings by basic genre, from 899 ratings for IMAX movies to 434,071 ratings for drama movies. By the way, let's notice that the total of rating numbers by basic genre is 2,595,771, which is far greater than the total of ratings, which is 999,999. Why? Because many movies had composite genres, i.e. genres regrouping several basic genres. Consequently, ratings for a lot of movies are counted several times. In spite of obvious redundancies, graph 6 gives a rough idea of distribution of ratings by basic genre.
+
+Breakdown by basic genre will be investigated in cohort analysis.
+
+<br>
+
+```{r Graph 6 - Ratings by Basic Genre, fig.cap = "Graph 6"}
+
+knitr::include_graphics("https://raw.githubusercontent.com/Dev-P-L/Cohort-Analysis/master/19_preparatory_analysis_rating_count_by_genre_graph.png")
+
+```
+
+<br>
+
+## EDA by Release Year
+
+As a last step in exploratory analysis, data will be broken down by release year by the SQL query that is saved in file 20.
+
+<br>
+
+![](20_preparatory_analysis_by_release_year_SQL_query.png)
+
+<br>
+
+This query has isolated movies released before 1990 and has saved results in a CSV file (file 21). It has produced some statistics per rating year comparable with the statistics already produced for all movies together: number of active users, number of ratings, number of movies, and number of ratings per active user. 
+
+The number of active users per rating year is illustrated in an XLSX file (file 22) and in PNG format as graph 7 (file 23).
+
+Graph 7 can be fruitfully compared with graph 1. Both give the number of active users per rating year, with graph 7 being limited to movies released before 1990 and graph 1 encompassing all movies irrespective of release year. In graph 1, we had a high for 1996, with the curve plunging after 1996; in 1996, there were more than 16,000 active users, in 1998, less than 2,000! In graph 7, there is no such pattern: after 1996, the curve dips a little but the highest point is no longer 1996, it is 2000; 1996 is at 3,550 active users, 2000 is at 7,496 active users! The difference is sensible.
+
+<br>
+
+```{r Graph 7 - Ratings of Movies Released before 1990, fig.cap = "Graph 7"}
+
+knitr::include_graphics("https://raw.githubusercontent.com/Dev-P-L/Cohort-Analysis/master/23_preparatory_analysis_user_count_by_release_year_graph.png")
+
+```
+
+<br>
+
+# Cohort Analysis
+
+## Globally
+
+Cohort analysis can now get started. In file 24, there is an SQL query that performs global cohort analysis. 
+
+First, years 1995 and 2009 are discarded because there are relatively few data (see above). 
+
+<br>
+
+![](24_1_cohort_analysis_global_SQL_script.png)
+
+<br>
+
+Second, user cohorts are prepared by assigning a join year to each user. 
+
+<br> 
+
+![](24_2_cohort_analysis_global_SQL_script.png)
+
+<br>
+
+Third, by join year and by rating year, the following series are computed:
+
+- number of ratings,
+- user retention (in numbers of users),
+- the average number of ratings per active user,
+- and the average rating.
+    
+<br>
+
+![](24_3_cohort_analysis_global_SQL_script.png)
+
+<br>
+
+Fourth, by user cohort (i.e. by join year), the following series are calculated:
+
+- the number of users in each cohort during the join year
+- the number of ratings in each cohort during the join year.
+    
+<br>
+
+![](24_4_cohort_analysis_global_SQL_script.png)
+
+<br>
+
+This aims at enabling to compute 
+
+- user retention for each rating year in percentage of join year,
+- rating number for each rating year in percentage of join year.
+    
+<br>
+
+Fifth, now the final table can be built up, per cohort and rating year, 
+with the following series:
+
+- join year,
+- rating year,
+- the difference between rating year and join year,
+- the user retention (in numbers of users),
+- the number of users during the join year, 
+- the user retention in percent of the join year,
+- the number of ratings,
+- the number of ratings during the join year,
+- the number of ratings in percent of the join year,
+- the average number of ratings per active user, 
+- and the average rating.
+    
+<br>
+
+![](24_5_cohort_analysis_global_SQL_script.png)
+
+<br>    
+
+Results are saved in CSV format in file 25. They are further processed in XLSX with pivot tables and graphs (file 26). Results from pivot tables are separately saved in 6 files (files 27, 28, 30, 31, 33, 35); graphs are saved in 4 PNG files (29, 32, 34, 36).
+
+<br>
+
+### User Retention
+
+Table 2 shows user retention by user cohort, i.e. by users' join year.
+
+<br>
+
+```{r Table 2 - User Retention}
+
+tab <- as.data.frame("Table 2 - User Retention") 
+colnames(tab) <- NULL
+kable(tab, "html", align = "c") %>% 
+  kable_styling(bootstrap_options = c("bordered", "condensed"), 
+  full_width = F, font_size = 24) %>%
+  column_spec(1, bold = T)
+
+tab <- read.csv("https://raw.githubusercontent.com/Dev-P-L/Cohort-Analysis/master/27_cohort_analysis_user_retention_result_from_pivot_table.csv")
+tab[is.na(tab)] <- ""
+colnames(tab) <- c(" ", "Join Year", paste("Y ", 1:11)) # Renaming column names
+kable(tab, "html", align = "c") %>% 
+  kable_styling(bootstrap_options = c("bordered", "condensed"), 
+  full_width = F, font_size = 18)
+
+```
+
+As evidenced by Table 2, retention over user lifetime drops dramatically from join year to first year and once again from first year to second year. Let's remember that join year is for each user the year with their first rating. The next year is called "first year", although it is the second one, because it is, for each cohort, the first year for which user retention can be calculated. For illustrative purposes, let's consider Cohort 1996: in 1996, there are 16,366 active users; in 1997, there remain just 941 users. 
+
+Since churning between join year and first year is so impressive, this means that most active users during one year (called here one rating year) originate in the cohort from that year. Let's visualize that in Table 2. For instance, in 1997, there are 941 raters from Cohort 1996 and 5,847 from Cohort 1997; in terms of users, Cohort 1997 is prevalent. As another example, among raters in 2000, 61 originate in Cohort 1997, 86 in Cohort 1998, 1400 in Cohort 1999 and 7751 in Cohort 2000. At the other end, among raters in 2008, prevalence of users from the most recent cohort is relatively lower: there are 4,227 users from Cohort 2008 and 2,170 from other cohorts, i.e. approximately one third from other cohorts. 
+
+This can usefully help explain ratings and their evolution. Nevertheless, other factors should be taken on board when explaining, such as the number of ratings per cohort and the average rating per cohort and per rating year. These additional factors will be analyzed later on. 
+
+<br>
+
+### User Retention in Percentage of Join Year
+
+In Table 3, user retention will be computed in percentage of join year so that retention over user lifetime can be more easily compared between cohorts. We will be in a better position to perceive change in retention over product lifetime. 
+
+<br>
+
+```{r Table 3 - User Retention in %}
+
+tab <- as.data.frame("Table 3 - User Retention in Percentage") 
+colnames(tab) <- NULL
+kable(tab, "html", align = "c") %>% 
+  kable_styling(bootstrap_options = c("bordered", "condensed"), 
+  full_width = F, font_size = 24) %>%
+  column_spec(1, bold = T)
+
+tab <- read.csv("https://raw.githubusercontent.com/Dev-P-L/Cohort-Analysis/master/28_cohort_analysis_user_retention_in_percent_result_from_pivot_table.csv")
+tab[is.na(tab)] <- ""
+colnames(tab) <- c(" ", "Join Year", paste("Y ", 1:11)) # Renaming column names
+kable(tab, "html", align = "c") %>% 
+  kable_styling(bootstrap_options = c("bordered", "condensed"), 
+  full_width = F, font_size = 18)
+
+```
+
+<br>
+
+As shown in Table 3, retention over user lifetime improves from Cohort 1998 onwards. It reaches exceptional levels for Cohort 1999. After Cohort 1999, levels drop somewhat but remain higher than before Cohort 1999. 
+
+For instance, let's consider  first year retention. From levels below 6 % for Cohort 1996 and Cohort 1997, first year retention moves above 7 % for Cohort 1998 and then jumps to more than 24 % for Cohort 1999, before plateauing at 13 % or higher for subsequent cohorts.
+
+Consequently, user retention over product lifetime shows a rather upward trend even if Cohort 1999's exceptional levels are not fully maintained by subsequent cohorts.
+
+This can be more easily perceived on Graph 8, where every other cohort is represented, starting with Cohort 1997. 
+
+<br>
+
+```{r Graph 8 - User Retention Change over Lifetime Product, fig.cap = "Graph 8"}
+
+knitr::include_graphics("https://raw.githubusercontent.com/Dev-P-L/Cohort-Analysis/master/29_cohort_analysis_user_retention_in_percentage_graph.png")
+
+```
+
+<br>
+
+Graph 8 clearly illustrates how retention improves over product lifetime after Cohort 1997. For clarity reasons, not all cohorts are represented but halving the sample does not alter general conclusions; retention can be found for all cohorts in Table 2 and Table 3 and have already been commented upon.
+
+While the magenta curve referencing Cohort 1997 remains relatively low, all other curves have a higher position. Cohort 1999 reaches exceptional levels. The second lowest curve, in blue, references Cohort 2001. Curves referencing Cohorts 2003, 2005 and 2007 are positioned higher than the blue curve of Cohort 2001.
+
+<br>
+
+### Number of Ratings by Cohort and by Rating Year
+
+It's high time we moved to the number of ratings. We will do that with Table 4, Table 5 and Graph 9. Table 4 presents the number of ratings by cohort and by rating year. 
+
+<br>
+
+```{r Table 4 - Number of Ratings by Cohort}
+
+tab <- as.data.frame("Table 4 - Number of Ratings by Cohort") 
+colnames(tab) <- NULL
+kable(tab, "html", align = "c") %>% 
+  kable_styling(bootstrap_options = c("bordered", "condensed"), 
+  full_width = F, font_size = 24) %>%
+  column_spec(1, bold = T)
+
+tab <- read.csv("https://raw.githubusercontent.com/Dev-P-L/Cohort-Analysis/master/30_cohort_analysis_rating_count_result_from_pivot_table.csv")
+tab[is.na(tab)] <- ""
+colnames(tab) <- c(" ", "Join Year", paste("Y ", 1:11)) # Renaming column names
+kable(tab, "html", align = "c") %>% 
+  kable_styling(bootstrap_options = c("bordered", "condensed"), 
+  full_width = F, font_size = 18)
+
+```
+
+<br>
+
+Just as in Table 2 about the number of active users, in Table 4, there is also churning and it even looks more important than in Table 2. For instance, in Cohort 1996 there are 104,846 active users in 1996 and just 23 two years later! 
+
+<br>
+
+### Number of Ratings in Percentage
+
+To better appreciate the churning rate, we will move to Table 5 where the number of ratings is expressed by cohort again but in percentage of the join year. 
+
+<br>
+
+```{r Table 5 - Number of Ratings by Cohort in % of Join Year}
+
+tab <- as.data.frame("Table 5 - Number of Ratings by Cohort in % of Join Year") 
+colnames(tab) <- NULL
+kable(tab, "html", align = "c") %>% 
+  kable_styling(bootstrap_options = c("bordered", "condensed"), 
+  full_width = F, font_size = 24) %>%
+  column_spec(1, bold = T)
+
+tab <- read.csv("https://raw.githubusercontent.com/Dev-P-L/Cohort-Analysis/master/31_cohort_analysis_rating_count_in_percent_result_from_pivot_table.csv")
+tab[is.na(tab)] <- ""
+colnames(tab) <- c(" ", "Join Year", paste("Y ", 1:11)) # Renaming column names
+kable(tab, "html", align = "c") %>% 
+  kable_styling(bootstrap_options = c("bordered", "condensed"), 
+  full_width = F, font_size = 18)
+
+```
+
+<br>
+
+Indeed, in Table 5, with number of ratings being expressed by cohort but in percentage of join year, churning is much more severe than in Table 4 with the number of active users! Consequently, for a specific rating year, the cohort originating in that year will have higher prevalence in terms of number of ratings than in terms of number of active users. If average ratings also change over user lifetime and product lifetime, this might mean that the cohort approach is relevant when issuing recommendations. 
+
+Graphical visualization can be found in Graph 9.
+
+<br>
+
+```{r Graph 9 - Number of Ratings by Cohort in % of Join Year, fig.cap = "Graph 9"}
+
+knitr::include_graphics("https://raw.githubusercontent.com/Dev-P-L/Cohort-Analysis/master/32_cohort_analysis_rating_count_in_percentage_graph.png")
+
+```
+
+<br>
+
+### Average Ratings by Cohort and by Rating Year
+
+Let's move to average ratings by cohort and by rating year. (Readers interested in the average number of ratings per active user can have a look at the table in file 33 and the graph in file 34.)
+
+<br>
+
+```{r Table 6 - Average Ratings by Cohort and by Rating Year}
+
+tab <- as.data.frame("Table 6 - Average Ratings by Cohort and by Rating Year") 
+colnames(tab) <- NULL
+kable(tab, "html", align = "c") %>% 
+  kable_styling(bootstrap_options = c("bordered", "condensed"), 
+  full_width = F, font_size = 24) %>%
+  column_spec(1, bold = T)
+
+tab <- read.csv("https://raw.githubusercontent.com/Dev-P-L/Cohort-Analysis/master/35_cohort_analysis_average_ratings_pivot_table.csv")
+tab[is.na(tab)] <- ""
+colnames(tab) <- c(" ", "Join Year", paste("Y ", 1:11)) # Renaming column names
+kable(tab, "html", align = "c") %>% 
+  kable_styling(bootstrap_options = c("bordered", "condensed"), 
+  full_width = F, font_size = 18)
+
+```
+
+<br>
+
+Table 6 shows that for most cohorts the average rating is higher during the join year. During the join year, each cohort also benefits from the highest number of active users and by far; after the join year, churning is very impressive. Consequently, it is important to know the evolution of average rating by cohort and by rating year, especially if the challenge is predicting users' ratings. 
+
+Decrease in average rating is the most noticeable for Cohort 1997, with average rating falling from 3.58 during join year to 3.34 during the first year after join year, and to 3.12 after 11 years. 
+
+On the contrary, Cohort 1996 shows an increase in average rating after join year, moving from 3.54 during join year to 3.61 during the next year and to 3.71 two years after join year. 
+
+For Cohort 2004 and Cohort 2005, there is first a slight drop then a slight increase. 
+
+Graph 10 below illustrates evolution of average rating for some cohorts. Let's notice once again Cohort 1997.
+
+<br>
+
+```{r Graph 10 - Average Ratings by Cohort and by Rating Year, fig.cap = "Graph 10"}
+
+knitr::include_graphics("https://raw.githubusercontent.com/Dev-P-L/Cohort-Analysis/master/36_cohort__analysis_average_ratings_graph.png")
+
+```
+
+<br>
+
+## Cohorts by Genre
+
+Cohort analysis by basic genre is performed through an SQL script saved in file 37. This script is the same as the one run for global cohort analysis: therefore, it will not be reproduced here, for brevity reasons. 
+
+SQL script in file 37 is run to produce cohort analysis for the basic genre drama (in the WHERE condition, "m.drama = 1"). I have run that script for all 19 basic genres, simply changing the instruction "m.drama = 1". 
+
+Raw results for all 19 basic genres are stored in 19 CSV files whose numbers are: 38, 40, 41, 42, 44, 46, 47, 48, 50, 51, 52, 53, 54, 56, 57, 59, 60, 61, 62. For illustrative purposes, six basic genres have been selected: action, children, comedy, drama, musical, and romance. Pivot tables have been produced in Excel for these six basic genres in XLSX files whose numbers are: 39, 43, 45, 49, 55, 58. A summarizing graph has been produced in Excel for these six basic genres and is saved in PNG format under number 64. Here it is.
+
+<br>
+
+```{r Graph 11 - First Year Retention by Basic Genre and by Cohort, fig.cap = "Graph 11"}
+
+knitr::include_graphics("https://raw.githubusercontent.com/Dev-P-L/Cohort-Analysis/master/64_cohort_analysis_1st_year_retention_by_genre_graph.png")
+
+```
+
+<br>
+
+Actually, graph 11 shows first year retention by basic genre and by cohort. 
+
+Basic genre drama is generally in top position, usually closely followed by the basic genre comedy and sometimes even challenged by the basic genre comedy. 
+
+In last position, there is the basic genre musical, sometimes challenged, especially among the first cohorts, by the basic genre children. 
+
+In between, there is the basic genre action, closely followed by the basic genre romance and sometimes even challenged by the basic genre romance, especially among the first cohorts. 
+
+Breaking down by basic genre and by cohort seems promising to predict ratings and to better understand users' behavioral patterns. 
+
+<br>
+
+## Cohorts by Release Year
+
+Cohort analysis by release year is provided by an SQL query saved in file 65. 
+
+The SQL script is the same as the one run for the global cohort analysis but only for movies released before 1990. For brevity reasons, it will not be reproduced here. 
+
+User retention in percentage is presented in CSV file 66 and processed in Excel pivot table in file 67. A graph is presented in PNG file 68 and reproduced hereunder. 
+
+<br>
+
+```{r Graph 12 - User Retention for Movies Released before 1990, fig.cap = "Graph 12"}
+
+knitr::include_graphics("https://raw.githubusercontent.com/Dev-P-L/Cohort-Analysis/master/68_cohort_analysis_retention_by_release_year_graph.png")
+
+```
+
+<br>
+
+In comparison with Graph 8, which is relative to all movies, Graph 12 generally shows lower retention percentages calculated with respect to join year. 
+
+<br>
+
+# Conclusion
+
+Data is a one-million-row extract from the 10-million-row MovieLens dataset. 
+
+In a previous project about predicting ratings, time effect had been noticed and quantified globally as a predictor. But impact was quantitatively limited and rather difficult to explain. 
+
+Cohort analysis has brought some new light about time effect. 
+
+Thirteen cohorts have been analyzed. They are delineated on the basis of users' join year. Join years are from 1995 to 2009. Cohort 1995 and Cohort 2009 have been excluded for lack of data. 
+
+First, in each cohort, join year is dramatically predominant in terms of number of active users. As soon as the first year after join year, churning is impressive. User retention over user lifetime is rather limited. Nevertheless, after Cohort 1997, there is some increase in user retention over product lifetime. 
+
+Second, the evolution of the number of ratings is rather similar to the evolution of the number of active users. 
+
+Third, in most cohorts, the average rating per rating year follows a downward trend.
+
+Fourth, in each cohort, user retention varies a lot according to the basic genres of movies. Six basic genres out of nineteen have been especially illustrated for first year retention rate. The basic genre drama generally shows the highest retention rates, followed by the basic genre comedy.The lowest first year retention rates are usually seen for the basic genre musical, with the basic genre children being a little bit higher. In between, two other basic genres have been illustrated, i.e. action and romance. 
+
+Fifth, movie release year has also been studied, through one example. Movie released before 1990 generally show lower retention rates.
+
+These are promising insights, as well about the product MovieLens as in terms of predictiveness of ratings. 
+
+<br>
+
+# Running SQL Code
+
+All readers are most welcome to run the SQL scripts, the pivot tables in Excel and the R Markdown report. 
+
+Running the SQL scripts is really easy. You only have to adapt the working directory in each SQL script. And before running the first SQL script (file 2), you should download and unzip file 1 from the GitHub repository and save it in the working directory you have chosen under the name 
+01_dataset.csv .
+
+That's it!
+
+<br>
+
+# References
+
+References have already been given about data source (please see the introduction).
+
+There are innumerable references about cohort analysis. Let me just mention a few ones.
+
+    https://medium.com/analytics-for-humans/what-is-cohort-analysis-and-how-should-i-use-it-3ac7c39c50dd
+    
+    https://www.cooladata.com/blog/cohort-analysis-guide/
+    
+    https://medium.com/@yemi_uc/how-to-do-your-cohorts-analysis-in-speadsheet-excel-a-detailed-guide-feddecb84c7a
+    
+    https://www.youtube.com/watch?v=-dyDHDk6pAM
+    
+    https://www.geckoboard.com/learn/kpi-examples/mobile-app-kpis/retention-rate/
+    
+                                      
+    
+
+
+
+
+
+
+

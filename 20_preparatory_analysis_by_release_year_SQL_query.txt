@@ -1,0 +1,36 @@
+-- PREPARATORY DATA ANALYSIS 
+-- Complementary query about release years
+-- Getting the number of ratings per rating year 
+-- for films released before 1990.
+
+DROP TABLE IF EXISTS movies_released_before_1990
+;
+
+SELECT 
+	rating_year AS "Rating Year",
+	COUNT(DISTINCT(r.user_id)) AS "Number of Active Users",
+	COUNT(DISTINCT(r.rating_id)) AS "Number of Ratings",
+	COUNT(DISTINCT(m.movie_id)) AS "Number of Movies",
+	(COUNT(DISTINCT(r.rating_id)) * 1.0) / (COUNT(DISTINCT(r.user_id)) * 1.0)
+	    AS "Number of Ratings per Active User"
+INTO
+    TEMP TABLE movies_released_before_1990
+FROM 
+    ratings AS r,
+	movies AS m
+WHERE
+    r.movie_id = m.movie_id
+	AND m.release_year < 1990
+GROUP BY 
+    ROLLUP(r.rating_year)
+;
+
+-- Let's convert the temporary table into a CSV file in local.
+-- (The file will also be copied to the repository, as all other files.)
+
+COPY (SELECT * FROM movies_released_before_1990) 
+  TO 'E:\DS\SQL\Cohort\21_preparatory_analysis_results_from_SQL_by_release_year.csv' 
+  WITH (FORMAT CSV, HEADER)
+;
+	
+-- This CSV file will be used to draw a graph in Excel.
