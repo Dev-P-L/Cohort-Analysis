@@ -1,5 +1,11 @@
-# Cohort-Analysis
+# Access to HTML Document 
 
+https://dev-p-l.github.io/Cohort-Analysis/70_cohort_analysis_final_report.html
+
+<br>
+<br>
+
+# Presentation of SQL Project on Cohort Analysis
 
 ## Files
 
@@ -13,7 +19,7 @@ This data analysis project is comprised of these files:
   *	and 1 README.md file. 
 
 Wishing to visualize *70_cohort_analysis_final_report.html*?
-  * You could activate the hyperlink *https://dev-p-l.github.io/Cohort-Analysis/70_cohort_analysis_final_report.html* .
+  * You could activate the hyperlink https://dev-p-l.github.io/Cohort-Analysis/70_cohort_analysis_final_report.html .
   * Alternatively, you could open it in GitHub Desktop.
   * Alternatively again, you could knit *69_cohort_analysis_final_report.Rmd* or ask me by email for a copy of *70_cohort_analysis_final_report.html* .
 
