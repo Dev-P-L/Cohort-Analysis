@@ -52,7 +52,7 @@ has been produced in R Markdown by knitting the file 69_cohort_analysis_final_re
 ## Summary
 
   * In the project Recommendation System (see corresponding repository in this account), 
-the 10-milllion-row MovieLens data set (see *https://grouplens.org/datasets/movielens/* )
+the 10-milllion-row MovieLens data set (see https://grouplens.org/datasets/movielens/ )
 has been analyzed. Time impact was a predictor, rather limited though. 
 
   * This project further elaborates on the idea of time impact by investigating 
