@@ -1,6 +1,6 @@
 # Access to HTML Document 
 
-https://dev-p-l.github.io/Cohort_Analysis_in_PostgreSQL/70_Cohort_Analysis_in_PostgreSQL.html
+https://dev-p-l.github.io/Cohort-Analysis/70_Cohort_Analysis.html
 
 <br>
 <br>
