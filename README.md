@@ -5,7 +5,7 @@ https://dev-p-l.github.io/Cohort-Analysis/70_cohort_analysis_final_report.html
 <br>
 <br>
 
-# Presentation of SQL Project on Cohort Analysis
+# Presentation of PostgreSQL Project on Cohort Analysis
 
 ## Files
 
